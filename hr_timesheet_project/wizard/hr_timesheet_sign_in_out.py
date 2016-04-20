@@ -1,9 +1,22 @@
 # -*- coding: utf-8 -*-
-from openerp.osv import fields, osv
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
+from openerp import fields, models, api, _
+from openerp.exceptions import Warning
 
-class hr_so_project(osv.osv_memory):
+
+class hr_so_project(models.TransientModel):
     _inherit = 'hr.sign.out.project'
-    _columns = {
-        'account_id': fields.many2one('account.analytic.account', 'Project / Analytic Account', domain=[('type','in',['normal','contract'])]),
-        }
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+
+    account_id = fields.Many2one(
+        domain=[('type', 'in', ['normal', 'contract']),
+                ('state', 'in', ['open', 'pending'])]
+    )
+
+    @api.onchange('account_id')
+    def on_change_account_id(self):
+        if self.account_id and self.account_id.state == 'pending':
+            raise Warning(
+                _('The Analytic Account is pending state!'))

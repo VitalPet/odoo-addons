@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import models, fields, _, api
 import openerp.addons.decimal_precision as dp
 from openerp.exceptions import Warning
@@ -13,11 +17,10 @@ class product_uom_price(models.Model):
 
     product_tmpl_id = fields.Many2one(
         'product.template',
-        string='Product Template',
-        required=True,)
+        string='Product Template')
     uom_id = fields.Many2one('product.uom', string='UOM', required=True,)
     price = fields.Float(
-        'Price', digits_compute=dp.get_precision('Price'),
+        'Price', digits=dp.get_precision('Price'),
         help="Sale Price for this UOM.", required=True)
 
     _sql_constraints = [
@@ -39,7 +42,10 @@ class product_template(models.Model):
         'product.uom.categ',
         string='UOM Category', related='uom_id.category_id')
     uom_price_ids = fields.One2many(
-        'product.uom.price', 'product_tmpl_id', string='UOM Prices')
+        'product.uom.price',
+        'product_tmpl_id',
+        string='UOM Prices',
+        help="Only uoms in this list will be available in sale order lines.Set a diferent price for this uom. Set the price as 0 and the price will be calculated as sale price * uom ratio")
 
     @api.one
     @api.constrains('uom_price_ids')
@@ -66,7 +72,7 @@ class product_template(models.Model):
             cr, uid, products, ptype=ptype, context=context)
         product_uom_price_obj = self.pool['product.uom.price']
         for product in products:
-            if product.use_uom_prices and 'uom' in context:
+            if ptype == 'list_price' and product.use_uom_prices and 'uom' in context:
                 product_uom_price_ids = product_uom_price_obj.search(
                     cr, uid, [
                         ('uom_id', '=', context['uom']),
@@ -76,18 +82,27 @@ class product_template(models.Model):
                     res[product.id] = product_uom_price_obj.browse(
                         cr, uid, product_uom_price_ids[0],
                         context=context).price
+                    # TODO mejorar
+                    # Antes intenamos hacer idependinete este modulo de
+                    # price_currency pero no pudimos, por eso el if de bajo
+                    # esta comentadosolo el calculo de currency
+
                     # If product price currency is insatalled then we update
                     # price in the correct currency
-                    if 'product_price_currency' in context:
-                        pricetype_obj = self.pool.get('product.price.type')
-                        price_type_id = pricetype_obj.search(
-                            cr, uid, [('field', '=', ptype)])[0]
-                        price_type_currency_id = pricetype_obj.browse(
-                            cr, uid, price_type_id).currency_id.id
-                        res[product.id] = self.pool['res.currency'].compute(
-                            cr, uid, product.sale_price_currency_id.id,
-                            price_type_currency_id, res[product.id],
-                            context=context)
+                    # if 'product_price_currency' in context:
+                    if res[product.id] == 0.0:
+                        res[product.id] = product.list_price * product_uom_price_obj.browse(
+                            cr, uid, product_uom_price_ids[0],
+                            context=context).uom_id.factor_inv
+                    pricetype_obj = self.pool.get('product.price.type')
+                    price_type_id = pricetype_obj.search(
+                        cr, uid, [('field', '=', ptype)])[0]
+                    price_type_currency_id = pricetype_obj.browse(
+                        cr, uid, price_type_id).currency_id.id
+                    res[product.id] = self.pool['res.currency'].compute(
+                        cr, uid, product.sale_price_currency_id.id,
+                        price_type_currency_id, res[product.id],
+                        context=context)
         return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

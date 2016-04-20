@@ -1,14 +1,15 @@
 # -*- encoding: utf-8 -*-
 {
     "name": "Search Partners by Reference",
-    "version": "1.0",
-    "author": "Ingenieria ADHOC",
+    "version": "8.0.1.0.0",
     "category": "",
-    "description" : """
+    "description": """
 Search Partners by Reference
 ============================
     """,
-    "website": "www.ingadhoc.com",
+    "author": "ADHOC SA",
+    "website": "www.adhoc.com.ar",
+    'license': 'AGPL-3',
     "depends": ["base",
                 ],
     "demo": [

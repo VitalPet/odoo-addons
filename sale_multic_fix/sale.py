@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import models, fields, api, _
 from openerp.exceptions import except_orm, Warning, RedirectWarning
 import openerp.addons.decimal_precision as dp
@@ -28,6 +32,7 @@ class sale_order_line(models.Model):
                                                              fiscal_position=fiscal_position, flag=flag, context=context)
         if not 'value' in res:
             res['value'] = {}
+        # tomamos la company del contexto porque no tenemos otra forma de saberla (ni sale order, ni warehouse)
         company_id = context.get('company_id', False)
         if company_id:
             fpos = self.pool['account.fiscal.position'].browse(cr, uid, fiscal_position)

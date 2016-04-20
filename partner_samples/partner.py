@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import models, fields
 import openerp.addons.decimal_precision as dp
 
@@ -28,7 +32,7 @@ class res_partner_sample(models.Model):
     quantity = fields.Float(
         'Quantity',
         required=True,
-        digits_compute=dp.get_precision('Product UoS'))
+        digits=dp.get_precision('Product UoS'))
     return_date = fields.Date(
         string='Return Date',)
 

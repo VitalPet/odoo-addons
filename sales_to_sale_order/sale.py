@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp.osv import fields, osv
 from openerp import SUPERUSER_ID, _
-from openerp.exceptions import except_orm, Warning, RedirectWarning
+from openerp.exceptions import Warning
 
 
 class sale_order(osv.osv):

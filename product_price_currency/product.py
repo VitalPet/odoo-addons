@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import fields, models, api
+import openerp.addons.decimal_precision as dp
 
 
 class product_template(models.Model):
@@ -16,16 +21,42 @@ class product_template(models.Model):
     sale_price_currency_id = fields.Many2one(
         'res.currency', 'Sale Price Currency',
         required=True, default=get_currency_id,
-        help="Currency used for the Currency List Price.")
+        help="Currency used for the Currency List Price."
+        )
+    sale_price_on_list_price_type_currency = fields.Float(
+        'Sale Price on List Price Currency',
+        digits=dp.get_precision('Product Price'),
+        compute='get_sale_price_on_list_price_type_currency',
+        help="Base price on List Price Type currency at actual exchange rate",
+        )
+    list_price_type_currency_id = fields.Many2one(
+        'res.currency',
+        'List Price Type Currency',
+        compute='get_sale_price_on_list_price_type_currency',
+        )
+
+    @api.one
+    @api.depends('list_price', 'sale_price_currency_id')
+    def get_sale_price_on_list_price_type_currency(self):
+        price_type = self.env['product.price.type'].search(
+            [('field', '=', 'list_price')], limit=1)
+        to_currency = price_type.currency_id
+        self.list_price_type_currency_id = to_currency
+        for product in self:
+            if (
+                    product.sale_price_currency_id and
+                    product.sale_price_currency_id != to_currency
+                    ):
+                to_price = (
+                    product.sale_price_currency_id.compute(
+                        product.list_price, to_currency))
+            else:
+                to_price = product.list_price
+            product.sale_price_on_list_price_type_currency = to_price
 
     def _price_get(self, cr, uid, products, ptype='list_price', context=None):
         if not context:
             context = {}
-        # For compatibility with other modules (like product_uom_prices
-        # we say in context that this module is installed
-        # We make this way becouse if not we have an error with frozendict
-        context = context.copy()
-        context['product_price_currency'] = True
         res = super(product_template, self)._price_get(
             cr, uid, products, ptype=ptype, context=context)
         if ptype == 'list_price':

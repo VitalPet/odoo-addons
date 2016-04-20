@@ -1,53 +1,94 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
+from openerp import fields, models, api
 
 
-from osv import fields, osv
-from tools.translate import _
-
-class product_catalog_report(osv.osv):
+class product_catalog_report(models.Model):
     _name = 'product.product_catalog_report'
     _description = 'Product Catalog Report with Aeroo'
 
+    name = fields.Char(
+        'Name',
+        required=True
+    )
+    products_order = fields.Char(
+        'Products Order Sintax',
+        help='for eg. name desc', required=False
+    )
+    categories_order = fields.Char(
+        'Categories Order Sintax',
+        help='for eg. name desc',
+    )
+    include_sub_categories = fields.Boolean(
+        'Include Subcategories?',
+    )
+    only_with_stock = fields.Boolean(
+        'Only With Stock Products?',
+    )
+    print_product_uom = fields.Boolean(
+        'Print Product UOM?',
+    )
+    product_type = fields.Selection(
+        [('product.template', 'Product Template'),
+         ('product.product', 'Product')], 'Product Type',
+        required=True
+    )
+    prod_display_type = fields.Selection(
+        [('prod_per_line', 'One Product Per Line'),
+         ('prod_list', 'Product List'),
+         ('variants', 'Variants'),
+         ], 'Product Display Type',
+    )
+    report_xml_id = fields.Many2one(
+        'ir.actions.report.xml',
+        'Report XML',
+        domain=[('report_type', '=', 'aeroo'),
+                ('model', '=', 'product.product_catalog_report')],
+        context={'default_report_type': 'aeroo',
+                 'default_model': 'product.product'},
+        required=True
+    )
+    category_ids = fields.Many2many(
+        'product.category',
+        'product_catalog_report_categories',
+        'product_catalog_report_id',
+        'category_id',
+        'Product Categories',
+    )
+    pricelist_ids = fields.Many2many(
+        'product.pricelist',
+        'product_catalog_report_pricelists',
+        'product_catalog_report_id',
+        'pricelist_id',
+        'Pricelist',
+    )
 
-    _columns = {
-        'name': fields.char('Name', required=True),
-        'products_order': fields.char('Products Order Sintax', help='for eg. name desc', required=False),
-        'categories_order': fields.char('Categories Order Sintax', help='for eg. name desc', required=False),
-        'report_xml_id': fields.many2one('ir.actions.report.xml', 'Report XML', domain="[('report_type','=','aeroo'),('model','=','product.product')]", context="{'default_report_type': 'aeroo', 'default_model': 'product.product'}", required=True),
-        'category_ids': fields.many2many('product.category', 'product_catalog_report_categories','product_catalog_report_id', 'category_id', 'Product Categories', required=True),
-        'pricelist_ids': fields.many2many('product.pricelist', 'product_catalog_report_pricelists', 'product_catalog_report_id', 'pricelist_id', 'Pricelist', required=False),
-    }
+    @api.multi
+    def prepare_report(self):
+        context = self._context.copy()
+        categories = self.category_ids
 
-    _defaults = {
-    }
-    
+        if self.include_sub_categories and categories:
+            categories = self.env['product.category'].search(
+                [('id', 'child_of', categories.ids)])
+        context['category_ids'] = categories.ids
+        context['product_type'] = self.product_type
+        context['pricelist_ids'] = self.pricelist_ids.ids
+        context['products_order'] = self.products_order
+        context['categories_order'] = self.categories_order
+        context['only_with_stock'] = self.only_with_stock
+        context['prod_display_type'] = self.prod_display_type
+        context['print_product_uom'] = self.print_product_uom
+        return self.with_context(context)
 
-    def generate_report(self, cr, uid, ids, context=None):
-        for report in self.browse(cr, uid, ids):
-        
-            categories = report.category_ids
-            if not categories:
-                return {'type': 'ir.actions.act_window_close'}
-            if not isinstance(categories, list):
-                categories = [categories]
-            context['category_ids'] = map(lambda cat: cat.id, categories)
-            
-            pricelist_ids = report.pricelist_ids
-            if not pricelist_ids:
-                pricelist_ids = []
-            if not isinstance(pricelist_ids, list):
-                pricelist_ids = [pricelist_ids]
-            
-            context['pricelist_ids'] = map(lambda lst: lst.id, pricelist_ids)
-
-            context['products_order'] = report.products_order
-            context['categories_order'] = report.categories_order
-
-            report_product_catalog = self.pool.get('ir.actions.report.xml').browse(cr, uid, [report.report_xml_id.id])[0].report_name
-
-            result = {'type' : 'ir.actions.report.xml',
-                      'context' : context,
-                      'report_name': report_product_catalog,}
-        return result
-
-
+    @api.multi
+    def generate_report(self):
+        """ Print the catalog
+        """
+        self.ensure_one()
+        self = self.prepare_report()
+        return self.env['report'].get_action(
+            self, self.report_xml_id.report_name)

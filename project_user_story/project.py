@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import models, fields, api, _
 
 
@@ -17,7 +21,7 @@ class task(models.Model):
             'view_mode': 'form',
             # 'view_id': [res_id],
             'res_model': 'project.task',
-            # 'context': "{'type':'out_invoice'}",
+            'context': self._context,
             'type': 'ir.actions.act_window',
             'nodestroy': True,
             'target': 'current',

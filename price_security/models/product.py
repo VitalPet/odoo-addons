@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import fields, models, api
 
 
@@ -9,11 +13,3 @@ class product_template(models.Model):
         help='If checked all users can modify the\
         price of this product in a sale order or invoice.',
         string='Can modify prices')
-
-    @api.multi
-    def _get_user_restrict_prices(self):
-        self.user_restrict_prices = self.env.user.restrict_prices
-
-    user_restrict_prices = fields.Boolean(
-        compute='_get_user_restrict_prices',
-        string='User Restrict Prices')

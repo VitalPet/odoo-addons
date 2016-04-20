@@ -7,11 +7,19 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='order_line']/tree//field[@name='price_unit']" position="after">
-                    <field name="pricelist_discount"/>
+                <xpath expr="//field[@name='order_line']/tree//field[@name='price_unit']" position="before">
+                    <field name="list_price"/>
+                    <field name="list_discount"/>
                 </xpath>
-                <xpath expr="//field[@name='order_line']/form//field[@name='price_unit']" position="after">
-                    <field name="pricelist_discount"/>
+                <xpath expr="//field[@name='order_line']/tree//field[@name='discount']" position="after">
+                    <field name="total_discount"/>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/form//field[@name='price_unit']" position="before">
+                    <field name="list_price"/>
+                    <field name="list_discount"/>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/form//field[@name='discount']" position="after">
+                    <field name="total_discount"/>
                 </xpath>
             </field>
         </record>

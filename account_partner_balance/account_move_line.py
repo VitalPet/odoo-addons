@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 
 
 import time
@@ -25,7 +29,7 @@ class account_move_line(osv.osv):
         'net': fields.function(_net, 
             string='Net',
             type='float',
-            digits_compute=dp.get_precision(
+            digits=dp.get_precision(
                                    'Account'),
             ),        
     }

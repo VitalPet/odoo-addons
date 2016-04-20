@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import models, api, _
 from openerp.exceptions import except_orm, Warning, RedirectWarning
 
@@ -27,7 +31,6 @@ class account_invoice(models.Model):
             rec_account = p.property_account_receivable
             pay_account = p.property_account_payable
             if company_id:
-                print 'p.property_account_receivable ', p.property_account_receivable
                 if p.property_account_receivable.company_id and \
                         p.property_account_receivable.company_id.id != company_id and \
                         p.property_account_payable.company_id and \

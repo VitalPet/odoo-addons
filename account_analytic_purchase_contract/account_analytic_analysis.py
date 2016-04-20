@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 
 from dateutil.relativedelta import relativedelta
 import datetime
@@ -70,9 +74,9 @@ class account_analytic_account(osv.osv):
             for line in contract.recurring_invoice_line_ids:
 
                 res = line.product_id
-                account_id = res.property_account_income.id
+                account_id = res.property_account_expense.id
                 if not account_id:
-                    account_id = res.categ_id.property_account_income_categ.id
+                    account_id = res.categ_id.property_account_expense_categ.id
                 account_id = fpos_obj.map_account(
                     cr, uid, fiscal_position, account_id)
 

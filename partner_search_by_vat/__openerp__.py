@@ -1,14 +1,15 @@
 # -*- encoding: utf-8 -*-
 {
     "name": "Search Partners by VAT",
-    "version": "1.0",
-    "author": "Ingenieria ADHOC",
+    "version": "8.0.1.0.0",
+    "author": "ADHOC SA",
     "category": "",
     "description" : """
 Search Partners by VAT
 ======================
     """,
-    "website": "www.ingadhoc.com",
+    "website": "www.adhoc.com.ar",
+    'license': 'AGPL-3',
     "depends": ["base_vat",
                 ],
     "demo": [

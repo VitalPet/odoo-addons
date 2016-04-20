@@ -1,17 +1,18 @@
 # -*- encoding: utf-8 -*-
 {
     "name": "Add Fields on Partners Views",
-    "version": "1.0",
-    "author": "Ingenieria ADHOC",
+    "version": "8.0.0.1.1",
+    "author": "ADHOC SA",
     "category": "",
-    "description" : """
+    "description": """
 Add Fields on Partners Views
 ============================
     """,
-    "website": "www.ingadhoc.com",
+    "website": "www.adhoc.com.ar",
+    'license': 'AGPL-3',
     "depends": [
         "base_setup",
-                ],
+    ],
     "demo": [
     ],
     "data": [

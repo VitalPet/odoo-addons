@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 
 
 import time
@@ -24,8 +28,6 @@ class product_pricelist(osv.osv):
            @return: a dict of dict with product_id as key and a dict 'price by pricelist' as value
         """
         results = super(product_pricelist, self).price_get_multi(cr, uid, pricelist_ids, products_by_qty_by_partner, context=context)
-        print 'results', results
-
 
         currency_obj = self.pool.get('res.currency')
         product_obj = self.pool.get('product.product')

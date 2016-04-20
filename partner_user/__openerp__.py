@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Ingenieria ADHOC - ADHOC SA
-#    https://launchpad.net/~ingenieria-adhoc
+#    Copyright (C) 2015  ADHOC SA  (http://www.adhoc.com.ar)
+#    All Rights Reserved.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,32 +18,32 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
-
-{   
-    'author': 'Ingenieria ADHOC',
+{
+    'author': 'ADHOC SA',
     'auto_install': False,
     'installable': True,
     'category': 'Tools',
     'demo_xml': [
-        ],
-    'depends': ['base','mail'],
+    ],
+    'depends': [
+        'base',
+        'mail'
+    ],
     'description': """
 Partners User
 =============
 Add partner user related fields on partner and add them in partner view. Also adds an action that allow quick creation of user. 
 For using the quick creation you must set a "template user" for the partner, you can do it by context or making this field visible. 
     """,
-    'init_xml': [],
     'license': 'AGPL-3',
     'name': u'Partner User',
     'test': [],
-    'update_xml': [   
+    'data': [
         'partner_view.xml',
         'security/ir.model.access.csv',
     ],
-    'version': '1.1',
-    'website': 'www.ingadhoc.com',
+    'version': '8.0.1.1.0',
+    'website': 'www.adhoc.com.ar',
     'application': True,
 }
 

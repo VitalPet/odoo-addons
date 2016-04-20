@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 
 from openerp import models, fields, api, _
 from openerp.osv import fields as old_fields
-from openerp.exceptions import except_orm, Warning, RedirectWarning
+from openerp.exceptions import Warning
 
 
 class res_partner(models.Model):
@@ -19,22 +23,32 @@ class res_partner(models.Model):
     # company_partner_state = fields.Boolean(
     #     related='company_id.partner_state',
     #     string="Company Partner State")
+    # TODO: tal vez mejor que usar un campo related a traves de company_id podriamos hacer un campo
+    # property que dependa de la compania y entonces un partner pueda estar aprobado en una cia y en otra no
+    # Ademas haria que la barra de partner_state se muestre o no segun sea la
+    # compania del usuario logueado (se puede ver el codigo de price_security
+    # que trae un campo en funcion a los datos del usuario logueado)
+    # Igualemtne, despues de penarlo y agregar el company_dependt vimos mejor que no porque en realida dun partner
+    # aprobado podria estar para todos, de hecho si lo hacemos properties, trabajando desde la padre, contra quien
+    # verificamos? seria medio lio
     _columns = {
         'company_partner_state': old_fields.related('company_id', 'partner_state', type='boolean'),
     }
 
     partner_state = fields.Selection(
         '_get_partner_states',
+        # company_dependent=True,
         string='Partner State',
         readonly=True,
         required=True,
-        default='potential')
+        default='potential'
+        )
 
     def write(self, cr, uid, ids, vals, context=None):
         for partner in self.browse(cr, uid, ids, context=context):
             if partner.partner_state in ['approved', 'pending']:
                 fields = self.check_fields(
-                    cr, uid, partner.id, 'track', context=context)
+                    cr, 1, partner.id, 'track', context=context)
                 if fields:
                     fields_set = set(fields)
                     vals_set = set(vals)
@@ -57,11 +71,12 @@ class res_partner(models.Model):
             partners_read = self.read(fields)
             for partner_read in partners_read:
                 for partner_field in partner_read:
+                    partner_name = self.browse(partner_read['id']).display_name
                     if not partner_read[partner_field]:
                         raise Warning(
-                            _("Can not request approval, \
-                                required field %s empty on partner id %i!"
-                                % (partner_field, partner_read['id'])))
+                            _("Can not request approval,\
+                            required field %s empty on partner  %s!"
+                                % (partner_field, partner_name)))
         self.partner_state = 'pending'
 
     @api.multi
@@ -73,7 +88,6 @@ class res_partner(models.Model):
     def check_partner_approve(self):
         user_can_approve_partners = self.env[
             'res.users'].has_group('partner_state.approve_partners')
-        print 'user_can_approve_partners', user_can_approve_partners
         if not user_can_approve_partners:
             raise Warning(
                 _("User can't approve partners, \
@@ -86,7 +100,9 @@ class res_partner(models.Model):
         if self.company_id.partner_state:
             company_field_ids = self.company_id.partner_state_field_ids
             if field_type == 'approval':
-                ret = [field.field_id.name for field in company_field_ids if field.approval]
+                ret = [
+                    field.field_id.name for field in company_field_ids if field.approval]
             elif field_type == 'track':
-                ret = [field.field_id.name for field in company_field_ids if field.track]
+                ret = [
+                    field.field_id.name for field in company_field_ids if field.track]
         return ret

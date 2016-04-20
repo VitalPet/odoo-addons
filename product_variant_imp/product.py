@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp import models, fields, api, SUPERUSER_ID
 
 
@@ -18,11 +22,12 @@ class product_product(models.Model):
         'attribute_value_ids.attribute_id',
         'attribute_value_ids.attribute_id.add_to_name',
         'attribute_line_ids',
-        'attribute_line_ids.attribute_id.add_to_name',
-        'attribute_line_ids.value_ids',
-        'attribute_line_ids.value_ids.name',
+        'product_tmpl_id.attribute_line_ids.attribute_id.add_to_name',
+        'product_tmpl_id.attribute_line_ids.value_ids',
+        'product_tmpl_id.attribute_line_ids.value_ids.name',
     )
     def _get_complete_name(self):
+        # TODO habria que ver de mejorar esta funcion porque se corre varias veces
         name = self.product_tmpl_id.name
         variants = [
             v.name for v in self.attribute_value_ids if v.attribute_id.add_to_name]
@@ -40,6 +45,13 @@ class product_product(models.Model):
         compute='_get_complete_name',
         store=True,
     )
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name'):
+            self = self.with_context(
+                default_name=vals.get('name'))
+        return super(product_product, self).create(vals)
 
 # Overwrite of name_get function to avoid joining variants again
     def name_get(self, cr, user, ids, context=None):
@@ -81,8 +93,10 @@ class product_product(models.Model):
                     lambda x: x.name.id in partner_ids, product.seller_ids)
             if sellers:
                 for s in sellers:
-                    seller_variant = s.product_name and "%s (%s)" % (
-                        s.product_name, variant) or False
+                    seller_variant = s.product_name and "%s" % (
+                        s.product_name) or False
+                    # seller_variant = s.product_name and "%s (%s)" % (
+                    #     s.product_name, variant) or False
                     mydict = {
                         'id': product.id,
                         'name': seller_variant or name,
@@ -97,42 +111,3 @@ class product_product(models.Model):
                 }
                 result.append(_name_get(mydict))
         return result
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-# Name search modificada para que busque tambien por los atributos
-    # def name_search(self, cr, user, name='', args=None, operator='ilike', context=None, limit=100):
-    #     if not args:
-    #         args = []
-    #     if name:
-    #         positive_operators = ['=', 'ilike', '=ilike', 'like', '=like']
-    #         ids = []
-    #         if operator in positive_operators:
-    #             ids = self.search(cr, user, [('default_code','=',name)]+ args, limit=limit, context=context)
-    #             if not ids:
-    #                 ids = self.search(cr, user, [('ean13','=',name)]+ args, limit=limit, context=context)
-    #         if not ids and operator not in expression.NEGATIVE_TERM_OPERATORS:
-    # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
-    # on a database with thousands of matching products, due to the huge merge+unique needed for the
-    # OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
-    # Performing a quick memory merge of ids in Python will give much better performance
-    #             ids = set(self.search(cr, user, args + [('default_code', operator, name)], limit=limit, context=context))
-    #             if not limit or len(ids) < limit:
-    # we may underrun the limit because of dupes in the results, that's fine
-    #                 limit2 = (limit - len(ids)) if limit else False
-    #                 ids.update(self.search(cr, user, args + [('name', operator, name)], limit=limit2, context=context))
-    # ESTO LO AGREGAMOS
-    #             if not limit or len(ids) < limit:
-    #                 print '11111'
-    #                 limit3 = (limit - len(ids)) if limit else False
-    #                 ids.update(self.search(cr, user, args + [('attribute_value_ids', operator, name)], limit=limit3, context=context))
-    #             ids = list(ids)
-    #         elif not ids and operator in expression.NEGATIVE_TERM_OPERATORS:
-    #             ids = self.search(cr, user, args + ['&', ('default_code', operator, name), ('name', operator, name)], limit=limit, context=context)
-    #         if not ids and operator in positive_operators:
-    #             ptrn = re.compile('(\[(.*?)\])')
-    #             res = ptrn.search(name)
-    #             if res:
-    #                 ids = self.search(cr, user, [('default_code','=', res.group(2))] + args, limit=limit, context=context)
-    #     else:
-    #         ids = self.search(cr, user, args, limit=limit, context=context)
-    #     result = self.name_get(cr, user, ids, context=context)
-    #     return result

@@ -1,14 +1,15 @@
 # -*- encoding: utf-8 -*-
 {
     "name": "Add Vat option on partner_views_fields",
-    "version": "1.0",
-    "author": "Ingenieria ADHOC",
+    "version": "8.0.1.0.0",
+    "author": "ADHOC SA",
     "category": "",
     "description" : """
 Add Fields on Partners Views
 ============================
     """,
-    "website": "www.ingadhoc.com",
+    "website": "www.adhoc.com.ar",
+    'license': 'AGPL-3',
     "depends": [
         "partner_views_fields",
         "base_vat",

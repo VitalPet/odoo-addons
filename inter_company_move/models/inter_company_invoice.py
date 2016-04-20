@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in module root
+# directory
+##############################################################################
 from openerp.osv import osv
-from openerp import models, fields, _
-from openerp import SUPERUSER_ID
+from openerp import models, fields, _, SUPERUSER_ID
 
 
 class account_invoice(models.Model):
     _inherit = 'account.invoice'
 
+    active = fields.Boolean('Active', default=True)
     invoice_move_type = fields.Selection(
         related='company_id.invoice_move_type',
         string='Invoice Move Type',)
@@ -38,6 +42,8 @@ class account_invoice(models.Model):
 
         if invoice.company_id.record_moved_id:
             invoice.write({'moved_invoice_id': moved_invoice_id})
+        if invoice.company_id.deactivate_invoice:
+            invoice.write({'active': False})
 
         moved_description = _(
             'Moved to invoice id: ') + str(moved_invoice_id)
@@ -122,8 +128,11 @@ class account_invoice(models.Model):
 
         # create invoice
         invoice_vals = self._prepare_inv(
-            cr, uid, invoice, inv_lines, inv_type, journal_type, company, context=ctx)
-        return inv_obj.create(cr, uid, invoice_vals, context=ctx)
+            cr, uid, invoice, inv_lines, inv_type, journal_type, company,
+            context=ctx)
+        inv_id = inv_obj.create(cr, uid, invoice_vals, context=ctx)
+        inv_obj.button_compute(cr, uid, [inv_id])
+        return inv_id
 
     def _prepare_inv_line(self, cr, uid, line_data, line, context=None):
         """ Generate invoice line dictionary"""
@@ -169,6 +178,7 @@ class account_invoice(models.Model):
         return {
             'name': invoice.name,
             'type': inv_type,
+            'reference': invoice.reference,
             'date_invoice': invoice.date_invoice,
             'account_id': partner_data['value'].get('account_id', False),
             'partner_id': invoice.partner_id.id,
@@ -179,6 +189,7 @@ class account_invoice(models.Model):
             'fiscal_position': partner_data['value'].get('fiscal_position', False),
             'payment_term': partner_data['value'].get('payment_term', False),
             'company_id': company.id,
+            'comment': invoice.comment,
             'period_id': period_ids and period_ids[0] or False,
             'partner_bank_id': partner_data['value'].get('partner_bank_id', False),
         }
